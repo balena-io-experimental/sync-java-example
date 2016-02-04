@@ -1,4 +1,4 @@
-### A Node.js resin sync example:
+### A Java 8 resin sync example:
 
 
 >Note: Currently this will only work on the Raspberry Pi 2, because the base image is ARMv7
@@ -6,6 +6,8 @@
 This example will allow you to develop quickly on a resin.io device by avoiding
 the build/download process and directly syncing a folder to a "test" device in
 the fleet.
+
+> **NB:** You need Oracle JDK 8 installed on your Development Machine, because the java code will be compiled on your Dev machine.
 
 In order to get this new super power you will need to set up a few things on your
 development computer.
@@ -82,15 +84,17 @@ Additional commands:
 Now that you have the resin-cli and resin-sync plugin installed, you need to setup the device-side. This is pretty straight forward and only requires these 2 steps:
 1. Enable the deviceURL for the device which you want to use as your development device. This can be done from the `Actions` tab on the device page. If you need help with this, have a look at our [docs on DeviceURLs](http://docs.resin.io/#/pages/management/devices.md#enable-public-device-url).
 2. Add an environment variable to the device called AUTH_TOKEN. The value of this variable should be your Auth token found on the preferences page. If you are unsure of how to set a device environment variable check our [docs on Env Vars](http://docs.resin.io/#/pages/management/env-vars.md)
-3. Push this repo (sync-node-example) to your resin.io application.
+3. Push this repo (sync-java-example) to your resin.io application.
 
 Once the device has pulled the first update and is in the Idle state, you will be ready to start using resin-sync to really speed up your resin.io development.
 
+>** Warning: ** The Auth Token will expire in a month or two. So you will need to refresh it.
+
 ##### Using resin-sync
 
-Now that your device is setup, make some small changes to the node.js code in `app/` folder and run `resin sync <UUID>` from within the `sync-node-example` directory. Replace `<UUID>` with the 7 digit alphanumeric id shown on the device dashboard. Here is an example:
+Now that your device is setup, make some small changes to the java code in `app/` folder and run `resin sync <UUID>` from within the `sync-java-example` directory. Replace `<UUID>` with the 7 digit alphanumeric id shown on the device dashboard. Here is an example:
 ```
-shaun@shaun-desktop:~/Desktop/sync-node-example$ resin sync 510b43d
+shaun@shaun-desktop:~/Desktop/sync-java-example$ resin sync 510b43d
 Connecting with: 510b43d
 I will run before syncing to the device...
 sending incremental file list
@@ -98,15 +102,15 @@ main.js
              36 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=0/2)
 Synced, restarting device
 ```
-In about 30seconds, your new node.js code should be running on the development device.
+In about 30seconds, your new java code should be running on the development device.
 
->**Note:**  If you need to install dependencies with something like `pip install` or `apt-get install`, then you will still need to go through the build pipeline and do a regular `git push resin master`
+>**Note:**  If you need to install dependencies with something like `apt-get install`, then you will still need to go through the build pipeline and do a regular `git push resin master`
 
 ##### What is resin-sync.yml
 The resin-sync.yml file is a handy file that allows you to describe the behaviour of resin-sync for this repo. In this example it looks like this:
 ```
 source: app/
-before: 'echo "I will run before syncing to the device..."'
+before: 'javac app/Hello.java'
 ignore:
     - .git
     - Dockerfile
@@ -116,9 +120,9 @@ watch: false
 ```
 Most of the labels are self explanitory, but I will give a short description here any how.
 
-**source:** This defines the directory that will be synced to the device. This will always be synced to `/usr/src/app` on the target device (in the future this will be configurable). In our example we sync our local `app/` directory to `/usr/src/app` so all our node.js source gets synced across.
+**source:** This defines the directory that will be synced to the device. This will always be synced to `/usr/src/app` on the target device (in the future this will be configurable). In our example we sync our local `app/` directory to `/usr/src/app` so all our java binaries gets synced across.
 
-**before:** The `before` command, allows us to define a pre-sync action, this is useful for compiled languages like go-lang or Java, where we could have this command execute a local cross-compile and then only sync over the binaries that are produced.
+**before:** The `before` command, allows us to define a pre-sync action, this is useful for compiled languages like go-lang or Java, where we could have this command execute a local cross-compile and then only sync over the binaries that are produced. In this example we have our local machines JDK 8 compile the java and then sync it across to the device. **NB** you need the JDK 8 installed on you development computer. Here you could even use a tool like `make` to handle the build process and just call it from `--before`.
 
 **ignore:** The `ignore` command allows you to list files and directories that resin-sync should ignore when syncing to the device. In this example we ignore `.git`, even though this is strictly not necessary because there is no `.git ` in the `app/` directory we are syncing.
 
