@@ -24,7 +24,7 @@ ENV INITSYSTEM=on
 # resin-sync will always sync to /usr/src/app, so code needs to be here.
 WORKDIR /usr/src/app
 
-# copy current directory into WORKDIR
+# copy app/ directory into WORKDIR
 COPY app/ ./
 
 RUN javac Hello.java

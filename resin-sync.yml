@@ -1,5 +1,5 @@
 source: app/
-before: 'echo "I will run before syncing to the device..."'
+before: 'javac app/Hello.java'
 ignore:
     - .git
     - Dockerfile
