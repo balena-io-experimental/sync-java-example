@@ -1,5 +1,5 @@
 # Warning: This is a test base image, please do not use in production!!
-FROM nghiant2710/device-sync:jessie
+FROM shaunmulligan/resin-sync-armv7-systemd
 
 # Install Java
 # with sources from https://launchpad.net/~webupd8team/+archive/ubuntu/java
