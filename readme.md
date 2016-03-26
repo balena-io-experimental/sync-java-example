@@ -1,16 +1,13 @@
 ### A Java 8 resin sync example:
 
 
->Note: Currently this will only work on the Raspberry Pi 2, because the base image is ARMv7
+>Note: Currently this will only work on the Raspberry Pi 2 and 3, BeagleBone Black, and in general ARMv7 devices. Other devices (like the rpi1) will not work due to the architecture of the base image. We will be addressing this limitation before wider release.
 
-This example will allow you to develop quickly on a resin.io device by avoiding
-the build/download process and directly syncing a folder to a "test" device in
-the fleet.
+This example will allow you to develop quickly on a resin.io device by avoiding the build/download process and directly syncing a folder to a "test" device in the fleet.
 
 > **NB:** You need Oracle JDK 8 installed on your Development Machine, because the java code will be compiled on your Dev machine.
 
-In order to get this new super power you will need to set up a few things on your
-development computer.
+In order to get this new super power you will need to set up a few things on your development computer.
 
 >**NOTE:** This example assumes you are familiar with the basic resin.io workflow and have set up a device and can comfortably push code to it. If you are new to resin.io first have a look at our [getting started guide](http://docs.resin.io/#/pages/installing/gettingStarted.md).
 
@@ -46,7 +43,7 @@ Logging in to resin.io
   I don't have a Resin account!
 ```
 
-Now run `resin help --verbose` to see if the plugin is enabled:
+Now run `resin help --verbose` to see if the plugin is enabled. You should see `sync <uuid>` at the bottom:
 ```
 shaun@shaun-desktop:~$ resin help --verbose
 Usage: resin [COMMAND] [OPTIONS]
@@ -81,14 +78,14 @@ Additional commands:
 
 ##### Setting up the Development Device
 
-Now that you have the resin-cli and resin-sync plugin installed, you need to setup the device-side. This is pretty straight forward and only requires these 2 steps:
+Now that you have the resin-cli and resin-sync plugin installed, you need to setup the device-side. This is pretty straightforward and only requires these 2 steps:
 1. Enable the deviceURL for the device which you want to use as your development device. This can be done from the `Actions` tab on the device page. If you need help with this, have a look at our [docs on DeviceURLs](http://docs.resin.io/#/pages/management/devices.md#enable-public-device-url).
 2. Add an environment variable to the device called AUTH_TOKEN. The value of this variable should be your Auth token found on the preferences page. If you are unsure of how to set a device environment variable check our [docs on Env Vars](http://docs.resin.io/#/pages/management/env-vars.md)
 3. Push this repo (sync-java-example) to your resin.io application.
 
 Once the device has pulled the first update and is in the Idle state, you will be ready to start using resin-sync to really speed up your resin.io development.
 
->** Warning: ** The Auth Token will expire in a month or two. So you will need to refresh it.
+>** Warning: ** The Auth Token will expire in a month or slightly longer, so you will need to refresh it.
 
 ##### Using resin-sync
 
@@ -102,9 +99,9 @@ main.js
              36 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=0/2)
 Synced, restarting device
 ```
-In about 30seconds, your new java code should be running on the development device.
+In about 30seconds, your new Java code should be running on the development device.
 
->**Note:**  If you need to install dependencies with something like `apt-get install`, then you will still need to go through the build pipeline and do a regular `git push resin master`
+>**Note:**  If you need to install dependencies with something like `apt-get install`, then you will still need to go through the build pipeline and do a regular `git push resin master`. Once it is complete, you can resume using resin sync to develop.
 
 ##### What is resin-sync.yml
 The resin-sync.yml file is a handy file that allows you to describe the behaviour of resin-sync for this repo. In this example it looks like this:
@@ -118,7 +115,7 @@ ignore:
 progress: true
 watch: false
 ```
-Most of the labels are self explanitory, but I will give a short description here any how.
+Here is a short description of what the fields do:
 
 **source:** This defines the directory that will be synced to the device. This will always be synced to `/usr/src/app` on the target device (in the future this will be configurable). In our example we sync our local `app/` directory to `/usr/src/app` so all our java binaries gets synced across.
 
@@ -136,10 +133,12 @@ For a more comprehensive list of resin sync commands, run `resin help sync`
 
 Resin-sync works by setting up an ssh server on the device that listens on port 80. The code is then synced over the resin.io VPN to the device. This means you can use resin-sync even with remote devices anywhere in the world.
 
-It also means you will have ssh automatically setup for you if you want to run some test commands. Just run `ssh root@<DEVICE-IP> -p80`. By default the device side container will pull all the public ssh keys onto the device, so you will not need a password. But if you ssh key is not on the device, then you can access the ssh with the password: `resin`.
+It also means you will have ssh automatically set up for you if you want to run some test commands. Just run `ssh root@<DEVICE-IP> -p80`. By default the device side container will pull all the public ssh keys onto the device, so you will not need a password. But if you ssh key is not on the device, then you can access the ssh with the password: `resin`.
 
 ##### Current Limitations
 
 Currently the sync can only be done to the `/usr/src/app` directory of the device. Have a look at the base image to see why. [[link](https://github.com/resin-io-library/base-images/pull/49/files#diff-90358446892ac0a322643ed27595fbd9R12)]
 
 Currently there is also a case that if you sync some changes, roll back those change and then commit and push...then you will notice that the synced changes are still running. This is again due to the section of code above. It is recommended that you do a purge of /data on your device before you run the git push.
+
+The security model of resin sync is not yet fully complete, but so long as your development device doesn't fall into a potential attacker's hands, you should not have any issues. This is another thing we're working on improving before full release.
